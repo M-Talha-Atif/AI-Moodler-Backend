@@ -1,0 +1,20 @@
+name: Keep API Awake
+
+# Render's free tier spins down after 15 minutes with no inbound traffic to the public
+# URL. This pings it every 10 minutes, comfortably under that window, to avoid cold
+# starts for real visitors. GitHub's scheduler can drift under load, hence 10 minutes
+# rather than cutting it close to 15. 5 minutes is the minimum granularity cron supports,
+# there's no way to go tighter than that on GitHub Actions.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API
+        run: |
+          curl -sf -o /dev/null -w "GET / -> %{http_code} (%{time_total}s)\n" \
+            https://moodly-api-d935.onrender.com/
